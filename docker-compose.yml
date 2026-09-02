@@ -1,0 +1,48 @@
+version: '3.8'
+
+services:
+  web:
+    build: .
+    ports:
+      - "5000:5000"
+    environment:
+      - DATABASE_URL=postgresql://antivirus:antivirus123@db:5432/antivirus
+      - REDIS_URL=redis://redis:6379/0
+      - SECRET_KEY=your-secret-key-change-this
+      - CLAMAV_HOST=clamav
+      - CLAMAV_PORT=3310
+    depends_on:
+      - db
+      - redis
+      - clamav
+    volumes:
+      - ./uploads:/app/uploads
+  
+  db:
+    image: postgres:14
+    environment:
+      - POSTGRES_USER=antivirus
+      - POSTGRES_PASSWORD=antivirus123
+      - POSTGRES_DB=antivirus
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+  
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+  
+  clamav:
+    image: clamav/clamav:latest
+    ports:
+      - "3310:3310"
+    environment:
+      - CLAMAV_NO_CLAMD=0
+    volumes:
+      - clamav_data:/var/lib/clamav
+
+volumes:
+  postgres_data:
+  clamav_data:
